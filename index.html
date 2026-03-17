@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="饿魔 - 科学减脂追踪工具">
+    <meta name="theme-color" content="#5FB3A3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="饿魔">
+    <title>饿魔 - 科学减脂</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- 授权弹窗 -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <h2>🔐 需要授权</h2>
+            <p>请输入授权码使用饿魔</p>
+            <input type="text" id="authCode" placeholder="输入授权码 EMO2024">
+            <button id="verifyBtn" style="width:100%;padding:14px;background:var(--primary);color:white;border:none;border-radius:12px;font-size:16px;font-weight:600;margin-top:10px;cursor:pointer;">验证</button>
+            <p id="authError" class="error"></p>
+            <button id="clearBtn" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border);color:var(--text-light);border-radius:12px;font-size:14px;margin-top:10px;cursor:pointer;">🔄 清除缓存重试</button>
+        </div>
+    </div>
+
+    <!-- 主界面 -->
+    <div id="mainApp" class="hidden">
+        <!-- 底部固定导航栏 -->
+        <nav class="bottom-nav" id="bottomNav">
+            <button class="nav-item active" onclick="switchTab('diet')">
+                <span class="nav-icon">🍽️</span>
+                <span class="nav-label">饮食</span>
+            </button>
+            <button class="nav-item" onclick="switchTab('carbon')">
+                <span class="nav-icon">🔄</span>
+                <span class="nav-label">碳循环</span>
+            </button>
+            <button class="nav-item" onclick="switchTab('body')">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">身体</span>
+            </button>
+            <button class="nav-item" onclick="switchTab('other')">
+                <span class="nav-icon">💧</span>
+                <span class="nav-label">其他</span>
+            </button>
+        </nav>
+        <!-- 顶部导航 -->
+        <header class="header" id="mainHeader">
+            <div class="logo">饿魔</div>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="showSettingsModal()">⚙️</button>
+                <button class="icon-btn" onclick="showShareModal()">👤</button>
+                <button class="icon-btn" onclick="exportData()">📤</button>
+            </div>
+        </header>
+
+        <!-- 成就徽章 -->
+        <div class="card badges-card" id="badgesCard" style="display:none;">
+            <h3>🏆 成就徽章</h3>
+            <div class="badges-container" id="badgesContainer"></div>
+        </div>
+
+        <!-- 今日概览卡片 -->
+        <div class="card summary-card">
+            <h3>今日概览</h3>
+            <div class="ring-progress" id="caloriesRing">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                    <circle class="ring-bg" cx="60" cy="60" r="52"/>
+                    <circle class="ring-fill" id="caloriesRingFill" cx="60" cy="60" r="52" 
+                        stroke-dasharray="327" stroke-dashoffset="327"/>
+                </svg>
+                <div class="ring-text">
+                    <div class="ring-value" id="todayCalories">0</div>
+                    <div class="ring-label">kcal</div>
+                </div>
+            </div>
+            <div class="summary-grid" style="margin-top:20px;">
+                <div class="summary-item">
+                    <span class="label">碳水</span>
+                    <span class="value" id="todayCarbs">0</span>
+                    <span class="unit">g</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">蛋白质</span>
+                    <span class="value" id="todayProtein">0</span>
+                    <span class="unit">g</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">脂肪</span>
+                    <span class="value" id="todayFat">0</span>
+                    <span class="unit">g</span>
+                </div>
+            </div>
+            <div id="dailyFeedback" class="feedback"></div>
+        </div>
+
+        <!-- 碳循环状态 -->
+        <div class="card carbon-card" id="carbonCard" style="display:none;">
+            <h3>📅 碳循环计划</h3>
+            <div class="carbon-status">
+                <span id="carbonDayType">今日: 低碳日</span>
+                <div class="carbon-targets" id="carbonTargetsDisplay">
+                    <div class="carbon-target-item">
+                        <span class="target-name">碳水</span>
+                        <span class="target-value" id="carbonTargetCarbs">--g</span>
+                    </div>
+                    <div class="carbon-target-item">
+                        <span class="target-name">蛋白质</span>
+                        <span class="target-value" id="carbonTargetProtein">--g</span>
+                    </div>
+                    <div class="carbon-target-item">
+                        <span class="target-name">脂肪</span>
+                        <span class="target-value" id="carbonTargetFat">--g</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="carbonProgress"></div>
+                </div>
+                <span id="carbonProgressText">碳水 45/100g</span>
+            </div>
+        </div>
+
+        <!-- 快捷提醒 -->
+        <div class="card">
+            <h3>🔔 快捷提醒</h3>
+            <div class="quick-reminders">
+                <div class="quick-reminder-item">
+                    <span>💧 喝水提醒</span>
+                    <select id="homeWaterReminder" onchange="updateHomeReminder('water', this.value)">
+                        <option value="off">关闭</option>
+                        <option value="60">每小时</option>
+                        <option value="120">每2小时</option>
+                    </select>
+                </div>
+                <div class="quick-reminder-item">
+                    <span>🍽️ 饮食提醒</span>
+                    <select id="homeDietReminder" onchange="updateHomeReminder('diet', this.value)">
+                        <option value="off">关闭</option>
+                        <option value="3">每天3次</option>
+                        <option value="2">每天2次</option>
+                    </select>
+                </div>
+                <div class="quick-reminder-item">
+                    <span>📏 体重提醒</span>
+                    <select id="homeWeightReminder" onchange="updateHomeReminder('weight', this.value)">
+                        <option value="off">关闭</option>
+                        <option value="daily">每天</option>
+                        <option value="weekly">每周</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- 饮食记录页 -->
+        <div id="dietTab" class="tab-content active">
+            <div class="card">
+                <h3>📝 记录饮食</h3>
+                <div class="input-methods">
+                    <button class="method-btn" onclick="showDietInput('manual')">✏️ 手动输入</button>
+                    <button class="method-btn" onclick="showDietInput('photo')">📷 拍照</button>
+                    <button class="method-btn" onclick="showDietInput('voice')">🎤 语音</button>
+                </div>
+                
+                <!-- 手动输入表单 -->
+                <div id="manualInput" class="input-form">
+                    <div class="form-row">
+                        <label>食物名称</label>
+                        <input type="text" id="foodName" placeholder="例如：鸡胸肉">
+                    </div>
+                    <div class="form-row">
+                        <label>碳水 (g)</label>
+                        <input type="number" id="carbs" placeholder="0" step="0.1">
+                    </div>
+                    <div class="form-row">
+                        <label>蛋白质 (g)</label>
+                        <input type="number" id="protein" placeholder="0" step="0.1">
+                    </div>
+                    <div class="form-row">
+                        <label>脂肪 (g)</label>
+                        <input type="number" id="fat" placeholder="0" step="0.1">
+                    </div>
+                    <div class="form-row">
+                        <label>热量 (kcal)</label>
+                        <input type="number" id="calories" placeholder="自动计算" readonly>
+                    </div>
+                    <button class="submit-btn" onclick="addDietRecord()">✅ 添加记录</button>
+                </div>
+
+                <!-- 拍照输入 -->
+                <div id="photoInput" class="input-form hidden">
+                    <input type="file" id="foodPhoto" accept="image/*" capture="camera" onchange="handlePhoto()">
+                    <p class="hint">📷 点击拍照或选择图片</p>
+                    <div id="photoPreview"></div>
+                </div>
+
+                <!-- 语音输入 -->
+                <div id="voiceInput" class="input-form hidden">
+                    <button class="voice-btn" onclick="startVoiceInput()">🎤 按住说话</button>
+                    <p class="hint">说出你吃的食物，例如："我吃了200克米饭和100克鸡胸肉"</p>
+                    <div id="voiceResult"></div>
+                </div>
+            </div>
+
+            <!-- 快捷操作 -->
+            <div class="card">
+                <h3>⚡ 快捷操作</h3>
+                <div class="quick-actions">
+                    <button class="action-btn" onclick="copyYesterdayDiet()">📋 复制昨日</button>
+                    <button class="action-btn" onclick="showFavoriteFoods()">⭐ 常用食物</button>
+                </div>
+                <!-- 常用食物列表 -->
+                <div id="favoriteFoodsList" class="favorite-list hidden">
+                    <p class="hint">点击快速添加</p>
+                    <div id="favoritesContainer"></div>
+                </div>
+            </div>
+
+            <!-- 数据视图切换 -->
+            <div class="card">
+                <h3>📊 数据视图</h3>
+                <div class="view-tabs">
+                    <button class="view-tab active" onclick="switchDietView('day')">今日</button>
+                    <button class="view-tab" onclick="switchDietView('week')">本周</button>
+                    <button class="view-tab" onclick="switchDietView('month')">本月</button>
+                </div>
+                <div id="dietStats">
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <span class="stat-label">平均热量</span>
+                            <span class="stat-value" id="avgCalories">--</span>
+                            <span class="stat-unit">kcal</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">记录天数</span>
+                            <span class="stat-value" id="recordDays">--</span>
+                            <span class="stat-unit">天</span>
+                        </div>
+                    </div>
+                    <div class="compare-section" id="compareSection" style="display:none;">
+                        <h4>📈 对比上周</h4>
+                        <div class="compare-item">
+                            <span>热量</span>
+                            <span class="compare-value" id="compareCalories">--</span>
+                        </div>
+                        <div class="compare-item">
+                            <span>碳水</span>
+                            <span class="compare-value" id="compareCarbs">--</span>
+                        </div>
+                        <div class="compare-item">
+                            <span>蛋白质</span>
+                            <span class="compare-value" id="compareProtein">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 今日记录列表 -->
+            <div class="card">
+                <h3>📋 今日记录</h3>
+                <div id="dietList" class="record-list">
+                    <p class="empty">暂无记录</p>
+                </div>
+            </div>
+
+            <!-- 营养素比例图表 -->
+            <div class="card">
+                <h3>🥧 营养素比例</h3>
+                <canvas id="macroChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 碳循环页 -->
+        <div id="carbonTab" class="tab-content">
+            <!-- 今日目标与进度（放前面） -->
+            <div class="card">
+                <h3>📅 今日目标与进度</h3>
+                <div id="carbonProgressList" class="progress-list">
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span>碳水</span>
+                            <span class="progress-value" id="carbsProgressText">0/0g</span>
+                        </div>
+                        <div class="progress-bar-large">
+                            <div class="progress-fill" id="carbsProgressBar"></div>
+                        </div>
+                        <span class="progress-percent" id="carbsPercent">0%</span>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span>蛋白质</span>
+                            <span class="progress-value" id="proteinProgressText">0/0g</span>
+                        </div>
+                        <div class="progress-bar-large">
+                            <div class="progress-fill" id="proteinProgressBar"></div>
+                        </div>
+                        <span class="progress-percent" id="proteinPercent">0%</span>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span>脂肪</span>
+                            <span class="progress-value" id="fatProgressText">0/0g</span>
+                        </div>
+                        <div class="progress-bar-large">
+                            <div class="progress-fill" id="fatProgressBar"></div>
+                        </div>
+                        <span class="progress-percent" id="fatPercent">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 碳循环设置（放后面） -->
+            <div class="card">
+                <h3>⚙️ 碳循环设置</h3>
+                <div class="form-row">
+                    <label>基础体重 (kg)</label>
+                    <input type="number" id="baseWeight" placeholder="70" step="0.1">
+                    <button class="link-btn" onclick="syncFromBodyData()">同步身体数据</button>
+                </div>
+                <div class="form-row">
+                    <label>碳水倍数</label>
+                    <input type="number" id="carbMultiplier" placeholder="2.0" step="0.1">
+                </div>
+                <div class="form-row">
+                    <label>蛋白质倍数</label>
+                    <input type="number" id="proteinMultiplier" placeholder="2.0" step="0.1">
+                </div>
+                <div class="form-row">
+                    <label>脂肪倍数</label>
+                    <input type="number" id="fatMultiplier" placeholder="0.8" step="0.1">
+                </div>
+                <div class="form-row">
+                    <label>低碳日数量</label>
+                    <input type="number" id="lowCarbonDays" placeholder="3" min="1">
+                </div>
+                <div class="form-row">
+                    <label>高碳日数量</label>
+                    <input type="number" id="highCarbonDays" placeholder="1" min="1">
+                </div>
+                <button class="submit-btn" onclick="saveCarbonSettings()">💾 保存设置</button>
+            </div>
+        </div>
+
+        <!-- 身体数据页 -->
+        <div id="bodyTab" class="tab-content">
+            <div class="card">
+                <h3>📝 记录身体数据</h3>
+                <div class="data-grid">
+                    <div class="form-row">
+                        <label>体重 (kg)</label>
+                        <input type="number" id="bodyWeight" placeholder="70.0" step="0.1">
+                    </div>
+                    <div class="form-row">
+                        <label>体脂率 (%)</label>
+                        <input type="number" id="bodyFat" placeholder="20.0" step="0.1">
+                    </div>
+                    <div class="form-row">
+                        <label>头围 (cm)</label>
+                        <input type="number" id="head" placeholder="56.0" step="0.1">
+                    </div>
+                    <div class="form-row">
+                        <label>胸围 (cm)</label>
+                        <input type="number" id="chest" placeholder="95.0" step="0.1">
+                    </div>
+                    <div class="form-row">
+                        <label>腰围 (cm)</label>
+                        <input type="number" id="waist" placeholder="80.0" step="0.1">
+                    </div>
+                    <div class="form-row">
+                        <label>臀围 (cm)</label>
+                        <input type="number" id="hip" placeholder="95.0" step="0.1">
+                    </div>
+                    <div class="form-row">
+                        <label>大臂围 (cm)</label>
+                        <input type="number" id="upperArm" placeholder="30.0" step="0.1">
+                    </div>
+                    <div class="form-row">
+                        <label>小臂围 (cm)</label>
+                        <input type="number" id="forearm" placeholder="25.0" step="0.1">
+                    </div>
+                    <div class="form-row">
+                        <label>大腿围 (cm)</label>
+                        <input type="number" id="thigh" placeholder="55.0" step="0.1">
+                    </div>
+                    <div class="form-row">
+                        <label>小腿围 (cm)</label>
+                        <input type="number" id="calf" placeholder="35.0" step="0.1">
+                    </div>
+                </div>
+                <button class="submit-btn" onclick="addBodyRecord()">💾 保存记录</button>
+            </div>
+
+            <!-- BMI 计算 -->
+            <div class="card" id="bmiCard" style="display:none;">
+                <h3>📊 BMI 指数</h3>
+                <div class="bmi-display">
+                    <div class="bmi-value" id="bmiValue">--</div>
+                    <div class="bmi-status" id="bmiStatus">--</div>
+                    <div class="bmi-bar">
+                        <div class="bmi-marker" id="bmiMarker"></div>
+                    </div>
+                    <div class="bmi-labels">
+                        <span>偏瘦</span>
+                        <span>正常</span>
+                        <span>偏胖</span>
+                        <span>肥胖</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 趋势预测 -->
+            <div class="card" id="predictionCard" style="display:none;">
+                <h3>🔮 趋势预测</h3>
+                <div class="prediction-content">
+                    <p class="prediction-text" id="predictionText">记录更多数据后可预测趋势</p>
+                    <div class="prediction-stats">
+                        <div class="pred-item">
+                            <span class="pred-label">当前趋势</span>
+                            <span class="pred-value" id="weightTrend">--</span>
+                        </div>
+                        <div class="pred-item">
+                            <span class="pred-label">预计30天后</span>
+                            <span class="pred-value" id="predictedWeight">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📈 体重趋势</h3>
+                <div class="chart-container">
+                    <canvas id="weightChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 维度选择 -->
+            <div class="card">
+                <h3>📏 身体维度</h3>
+                <div class="dimension-tabs">
+                    <button class="dim-tab active" onclick="switchDimension('weight')">体重</button>
+                    <button class="dim-tab" onclick="switchDimension('fat')">体脂</button>
+                    <button class="dim-tab" onclick="switchDimension('waist')">腰围</button>
+                    <button class="dim-tab" onclick="switchDimension('hip')">臀围</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="dimensionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📋 历史记录</h3>
+                <div id="bodyList" class="record-list">
+                    <p class="empty">暂无记录</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 其他数据页 -->
+        <div id="otherTab" class="tab-content">
+            <!-- 喝水 -->
+            <div class="card">
+                <h3>💧 喝水记录</h3>
+                <div class="form-row">
+                    <label>每日目标 (ml)</label>
+                    <input type="number" id="waterTarget" value="2000" step="100" onchange="updateWaterTarget()">
+                </div>
+                <div class="ring-progress" id="waterRing">
+                    <svg width="120" height="120" viewBox="0 0 120 120">
+                        <circle class="ring-bg" cx="60" cy="60" r="52"/>
+                        <circle class="ring-fill" id="waterRingFill" cx="60" cy="60" r="52" 
+                            stroke-dasharray="327" stroke-dashoffset="327"/>
+                    </svg>
+                    <div class="ring-text">
+                        <div class="ring-value" id="waterPercent">0%</div>
+                        <div class="ring-label" id="waterAmount">0/2000ml</div>
+                    </div>
+                </div>
+                <div class="water-cups" id="waterCups" style="margin:15px 0;"></div>
+                <div class="water-controls">
+                    <button class="water-btn minus" onclick="addWater(-250)">-250</button>
+                    <button class="water-btn" onclick="addWater(250)">+250</button>
+                    <button class="water-btn minus" onclick="addWater(-500)">-500</button>
+                    <button class="water-btn" onclick="addWater(500)">+500</button>
+                    <button class="water-btn" onclick="resetWater()">🔄</button>
+                </div>
+            </div>
+
+            <!-- 睡眠 -->
+            <div class="card">
+                <h3>😴 睡眠记录</h3>
+                <div class="data-input">
+                    <div class="form-row">
+                        <label>入睡时间</label>
+                        <input type="time" id="sleepTime">
+                    </div>
+                    <div class="form-row">
+                        <label>起床时间</label>
+                        <input type="time" id="wakeTime">
+                    </div>
+                    <div class="form-row">
+                        <label>睡眠时长 (小时)</label>
+                        <input type="number" id="sleepHours" placeholder="8" step="0.5">
+                    </div>
+                    <div class="form-row">
+                        <label>睡眠质量</label>
+                        <select id="sleepQuality">
+                            <option value="5">😴 很好</option>
+                            <option value="4">🙂 不错</option>
+                            <option value="3">😐 一般</option>
+                            <option value="2">😕 较差</option>
+                            <option value="1">😫 很差</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="submit-btn" onclick="addSleepRecord()">💾 保存睡眠</button>
+                <div id="sleepList" class="record-list" style="margin-top:15px;"></div>
+            </div>
+
+            <!-- 热量对比 -->
+            <div class="card">
+                <h3>🔥 热量收支</h3>
+                <div class="calorie-balance">
+                    <div class="balance-item intake">
+                        <span class="balance-icon">🍽️</span>
+                        <span class="balance-label">摄入</span>
+                        <span class="balance-value" id="intakeCalories">0</span>
+                        <span class="balance-unit">kcal</span>
+                    </div>
+                    <div class="balance-divider">
+                        <span class="balance-diff" id="calorieDiff">-0</span>
+                    </div>
+                    <div class="balance-item burn">
+                        <span class="balance-icon">🔥</span>
+                        <span class="balance-label">消耗</span>
+                        <span class="balance-value" id="burnCalories">0</span>
+                        <span class="balance-unit">kcal</span>
+                    </div>
+                </div>
+                <div class="balance-bar">
+                    <div class="balance-fill" id="balanceFill"></div>
+                </div>
+                <p class="balance-hint" id="balanceHint">今日热量平衡</p>
+            </div>
+
+            <!-- 运动 -->
+            <div class="card">
+                <h3>🏃 运动记录</h3>
+                <div class="data-input">
+                    <div class="form-row">
+                        <label>运动类型</label>
+                        <select id="exerciseType">
+                            <option value="跑步">🏃 跑步</option>
+                            <option value="游泳">🏊 游泳</option>
+                            <option value="骑行">🚴 骑行</option>
+                            <option value="力量训练">🏋️ 力量训练</option>
+                            <option value="瑜伽">🧘 瑜伽</option>
+                            <option value="其他">🤸 其他</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label>时长 (分钟)</label>
+                        <input type="number" id="exerciseDuration" placeholder="30" min="1">
+                    </div>
+                    <div class="form-row">
+                        <label>消耗热量 (kcal)</label>
+                        <input type="number" id="exerciseCalories" placeholder="200">
+                    </div>
+                </div>
+                <button class="submit-btn" onclick="addExerciseRecord()">💾 保存运动</button>
+                <div id="exerciseList" class="record-list" style="margin-top:15px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分享弹窗 -->
+    <div id="shareModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>👤 分享管理</h2>
+            <div class="share-options">
+                <div class="form-row">
+                    <label>生成分享授权码</label>
+                    <input type="number" id="shareDays" placeholder="使用天数" min="1" max="30">
+                </div>
+                <button class="share-btn" onclick="generateShareCode()">🔑 生成授权码</button>
+                <div id="shareCodeResult"></div>
+                <button class="share-btn" onclick="closeShareModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导出弹窗 -->
+    <div id="exportModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>📤 导出数据</h2>
+            <div class="share-options">
+                <button class="share-btn" onclick="showShareCard()">📸 生成分享卡片</button>
+                <button class="share-btn" onclick="exportJSON()">📄 导出 JSON</button>
+                <button class="share-btn" onclick="exportCSV()">📊 导出 CSV</button>
+                <button class="share-btn" onclick="generateReport()">📈 生成报告</button>
+                <button class="share-btn" onclick="closeExportModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分享卡片预览 -->
+    <div id="shareCardModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>📸 分享卡片</h2>
+            <div id="shareCardPreview" class="share-card">
+                <div class="share-card-title">🎯 今日减脂数据</div>
+                <div class="share-card-stats">
+                    <div class="share-card-stat">
+                        <div class="share-card-stat-value" id="shareCalories">0</div>
+                        <div class="share-card-stat-label">热量 (kcal)</div>
+                    </div>
+                    <div class="share-card-stat">
+                        <div class="share-card-stat-value" id="shareCarbs">0</div>
+                        <div class="share-card-stat-label">碳水 (g)</div>
+                    </div>
+                    <div class="share-card-stat">
+                        <div class="share-card-stat-value" id="shareProtein">0</div>
+                        <div class="share-card-stat-label">蛋白质 (g)</div>
+                    </div>
+                    <div class="share-card-stat">
+                        <div class="share-card-stat-value" id="shareFat">0</div>
+                        <div class="share-card-stat-label">脂肪 (g)</div>
+                    </div>
+                </div>
+                <div class="share-card-date" id="shareDate"></div>
+                <div class="share-card-brand">饿魔 · 科学减脂</div>
+            </div>
+            <button class="share-btn" onclick="downloadShareCard()">💾 保存图片</button>
+            <button class="share-btn" onclick="closeShareCardModal()">关闭</button>
+        </div>
+    </div>
+
+    <!-- 设置页面 -->
+    <div id="settingsModal" class="modal hidden">
+        <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+            <h2>⚙️ 设置</h2>
+            
+            <!-- 主人码设置 -->
+            <div class="settings-section">
+                <h3>🔐 授权码设置</h3>
+                <div class="form-row">
+                    <label>当前主人码</label>
+                    <input type="text" id="currentOwnerCode" readonly>
+                </div>
+                <div class="form-row">
+                    <label>新主人码</label>
+                    <input type="text" id="newOwnerCode" placeholder="输入新授权码">
+                </div>
+                <button class="share-btn" onclick="updateOwnerCode()">💾 修改主人码</button>
+            </div>
+            
+            <!-- 分享码管理 -->
+            <div class="settings-section">
+                <h3>👤 分享码管理</h3>
+                <div id="activeSharesList">
+                    <p class="empty">暂无有效分享码</p>
+                </div>
+            </div>
+            
+            <!-- 提醒设置 -->
+            <div class="settings-section">
+                <h3>🔔 提醒设置</h3>
+                <div class="reminder-item">
+                    <label>饮食记录提醒</label>
+                    <select id="dietReminder" onchange="saveReminderSettings()">
+                        <option value="off">关闭</option>
+                        <option value="3">每天3次（早中晚）</option>
+                        <option value="2">每天2次（早晚）</option>
+                    </select>
+                </div>
+                <div class="reminder-item">
+                    <label>喝水提醒</label>
+                    <select id="waterReminder" onchange="saveReminderSettings()">
+                        <option value="off">关闭</option>
+                        <option value="60">每小时</option>
+                        <option value="120">每2小时</option>
+                    </select>
+                </div>
+                <div class="reminder-item">
+                    <label>体重记录提醒</label>
+                    <select id="weightReminder" onchange="saveReminderSettings()">
+                        <option value="off">关闭</option>
+                        <option value="daily">每天</option>
+                        <option value="weekly">每周</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 数据导入 -->
+            <div class="settings-section">
+                <h3>📥 数据导入</h3>
+                <p class="hint">支持从其他App导入数据</p>
+                <button class="share-btn" onclick="importFromCSV()">📊 导入 CSV</button>
+                <button class="share-btn" onclick="importFromJSON()">📄 导入 JSON</button>
+            </div>
+
+            <!-- 数据管理 -->
+            <div class="settings-section">
+                <h3>💾 数据管理</h3>
+                <button class="share-btn" onclick="backupData()">📤 备份数据</button>
+                <button class="share-btn" onclick="showRestoreModal()">📥 恢复数据</button>
+                <button class="share-btn" onclick="clearAllData()">🗑️ 清空所有数据</button>
+            </div>
+
+            <!-- PWA 安装 -->
+            <div class="settings-section">
+                <h3>📱 添加到桌面</h3>
+                <p class="hint">像App一样使用饿魔</p>
+                <button class="share-btn" id="installBtn" onclick="installPWA()" style="display:none;">📲 安装到桌面</button>
+                <p id="installHint" class="hint">iOS用户：点击分享→添加到主屏幕</p>
+            </div>
+            
+            <button class="share-btn" onclick="closeSettingsModal()" style="margin-top: 20px;">关闭</button>
+        </div>
+    </div>
+
+    <!-- 恢复数据弹窗 -->
+    <div id="restoreModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>📥 恢复数据</h2>
+            <p class="hint">选择之前备份的 JSON 文件</p>
+            <input type="file" id="restoreFile" accept=".json" onchange="restoreData()">
+            <button class="share-btn" onclick="closeRestoreModal()">取消</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
