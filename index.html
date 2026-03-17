@@ -64,37 +64,37 @@
         </div>
 
         <!-- 今日概览卡片 -->
-        <div class="card summary-card">
-            <h3>今日概览</h3>
-            <div class="ring-progress" id="caloriesRing" style="width:60px;height:60px;margin:0 auto;">
-                <svg width="60" height="60" viewBox="0 0 120 120">
-                    <circle class="ring-bg" cx="60" cy="60" r="52"/>
+        <div class="card summary-card" style="padding:15px;">
+            <h3 style="font-size:14px;margin-bottom:10px;">今日概览</h3>
+            <div class="ring-progress" id="caloriesRing" style="width:45px;height:45px;margin:0 auto;">
+                <svg width="45" height="45" viewBox="0 0 120 120">
+                    <circle class="ring-bg" cx="60" cy="60" r="52" style="stroke-width:8;"/>
                     <circle class="ring-fill" id="caloriesRingFill" cx="60" cy="60" r="52" 
-                        stroke-dasharray="327" stroke-dashoffset="327"/>
+                        stroke-dasharray="327" stroke-dashoffset="327" style="stroke-width:8;"/>
                 </svg>
                 <div class="ring-text">
-                    <div class="ring-value" id="todayCalories" style="font-size:16px;">0</div>
-                    <div class="ring-label" style="font-size:10px;">kcal</div>
+                    <div class="ring-value" id="todayCalories" style="font-size:12px;">0</div>
+                    <div class="ring-label" style="font-size:8px;">kcal</div>
                 </div>
             </div>
-            <div class="summary-grid" style="margin-top:20px;">
+            <div class="summary-grid" style="margin-top:15px;gap:10px;">
                 <div class="summary-item">
-                    <span class="label">碳水</span>
-                    <span class="value" id="todayCarbs">0</span>
-                    <span class="unit">g</span>
+                    <span class="label" style="font-size:11px;">碳水</span>
+                    <span class="value" id="todayCarbs" style="font-size:16px;">0</span>
+                    <span class="unit" style="font-size:10px;">g</span>
                 </div>
                 <div class="summary-item">
-                    <span class="label">蛋白质</span>
-                    <span class="value" id="todayProtein">0</span>
-                    <span class="unit">g</span>
+                    <span class="label" style="font-size:11px;">蛋白质</span>
+                    <span class="value" id="todayProtein" style="font-size:16px;">0</span>
+                    <span class="unit" style="font-size:10px;">g</span>
                 </div>
                 <div class="summary-item">
-                    <span class="label">脂肪</span>
-                    <span class="value" id="todayFat">0</span>
-                    <span class="unit">g</span>
+                    <span class="label" style="font-size:11px;">脂肪</span>
+                    <span class="value" id="todayFat" style="font-size:16px;">0</span>
+                    <span class="unit" style="font-size:10px;">g</span>
                 </div>
             </div>
-            <div id="dailyFeedback" class="feedback"></div>
+            <div id="dailyFeedback" class="feedback" style="margin-top:10px;padding:8px;font-size:12px;"></div>
         </div>
 
         <!-- 碳循环状态 -->

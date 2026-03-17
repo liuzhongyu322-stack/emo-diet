@@ -915,10 +915,13 @@ function switchTab(tab) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ===== 滚动隐藏标题栏（修复频闪版） =====
+// ===== 滚动隐藏标题栏（已禁用，解决频闪） =====
+// 频闪问题已禁用此功能，标题栏始终显示
+// 如需重新启用，取消下面代码的注释
+
+/*
 let scrollTimeout;
 let lastScrollTop = 0;
-let isScrolling = false;
 
 window.addEventListener('scroll', function() {
     const header = document.getElementById('mainHeader');
@@ -926,18 +929,15 @@ window.addEventListener('scroll', function() {
     
     const scrollTop = window.scrollY;
     
-    // 防止频闪：只在滚动超过30px时才处理
     if (Math.abs(scrollTop - lastScrollTop) < 30) return;
     
     clearTimeout(scrollTimeout);
     
-    // 向下滚动且超过100px才隐藏
     if (scrollTop > lastScrollTop && scrollTop > 100) {
         if (!header.classList.contains('hidden')) {
             header.classList.add('hidden');
         }
     } else if (scrollTop < lastScrollTop) {
-        // 向上滚动立即显示
         if (header.classList.contains('hidden')) {
             header.classList.remove('hidden');
         }
@@ -945,6 +945,7 @@ window.addEventListener('scroll', function() {
     
     lastScrollTop = scrollTop;
 }, { passive: true });
+*/
 
 // ===== 震动反馈 =====
 function vibrate(pattern) {
