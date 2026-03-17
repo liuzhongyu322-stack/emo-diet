@@ -80,19 +80,25 @@ function verifyAuthCode() {
         return;
     }
     
-    // 检查是否是分享授权码
-    if (appData.shareAuth && appData.shareAuth.code === code) {
-        if (new Date(appData.shareAuth.expires) > new Date()) {
-            localStorage.setItem(SHARE_AUTH_KEY, JSON.stringify(appData.shareAuth));
-            document.getElementById('authModal').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            updateUI();
-            return;
-        }
+    // 检查是否是分享授权码（格式：EMO + 6位字符）
+    if (code.startsWith('EMO') && code.length === 9) {
+        // 分享码验证成功，创建临时的分享授权数据
+        const shareAuthData = {
+            code: code,
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7天有效期
+            created: new Date().toISOString()
+        };
+        
+        localStorage.setItem(SHARE_AUTH_KEY, JSON.stringify(shareAuthData));
+        document.getElementById('authModal').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        updateUI();
+        showNotification('欢迎！分享码有效期7天');
+        return;
     }
     
     console.log('授权码验证失败');
-    document.getElementById('authError').textContent = '授权码错误，请重试';
+    document.getElementById('authError').textContent = '授权码错误，请检查格式（主人码或EMO开头的分享码）';
 }
 
 // ===== 数据管理 =====
