@@ -915,33 +915,35 @@ function switchTab(tab) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ===== 滚动隐藏标题栏（优化版） =====
+// ===== 滚动隐藏标题栏（修复频闪版） =====
 let scrollTimeout;
 let lastScrollTop = 0;
+let isScrolling = false;
+
 window.addEventListener('scroll', function() {
     const header = document.getElementById('mainHeader');
     if (!header) return;
     
     const scrollTop = window.scrollY;
     
-    // 只在滚动超过10px时才处理，减少触发频率
-    if (Math.abs(scrollTop - lastScrollTop) < 10) return;
+    // 防止频闪：只在滚动超过30px时才处理
+    if (Math.abs(scrollTop - lastScrollTop) < 30) return;
     
     clearTimeout(scrollTimeout);
     
-    // 向下滚动隐藏，向上滚动显示
-    if (scrollTop > lastScrollTop && scrollTop > 60) {
-        header.classList.add('hidden');
-    } else {
-        header.classList.remove('hidden');
+    // 向下滚动且超过100px才隐藏
+    if (scrollTop > lastScrollTop && scrollTop > 100) {
+        if (!header.classList.contains('hidden')) {
+            header.classList.add('hidden');
+        }
+    } else if (scrollTop < lastScrollTop) {
+        // 向上滚动立即显示
+        if (header.classList.contains('hidden')) {
+            header.classList.remove('hidden');
+        }
     }
     
     lastScrollTop = scrollTop;
-    
-    // 滚动停止3秒后显示标题栏
-    scrollTimeout = setTimeout(() => {
-        header.classList.remove('hidden');
-    }, 3000);
 }, { passive: true });
 
 // ===== 震动反馈 =====
@@ -2003,8 +2005,19 @@ let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
+    
+    // 显示安装按钮（安卓）
     const installBtn = document.getElementById('installBtn');
-    if (installBtn) installBtn.style.display = 'block';
+    if (installBtn) {
+        installBtn.style.display = 'block';
+        installBtn.textContent = '📲 安装到桌面';
+    }
+    
+    // 显示安装提示
+    const installHint = document.getElementById('installHint');
+    if (installHint) {
+        installHint.textContent = '点击上方按钮安装到主屏幕';
+    }
 });
 
 function installPWA() {
@@ -2013,13 +2026,30 @@ function installPWA() {
         deferredPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') {
                 showNotification('已添加到桌面！');
+                // 隐藏安装按钮
+                const installBtn = document.getElementById('installBtn');
+                if (installBtn) installBtn.style.display = 'none';
             }
             deferredPrompt = null;
         });
     } else {
-        showNotification('请使用浏览器菜单添加到主屏幕');
+        // 安卓Chrome：提示用户如何添加
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        if (isAndroid) {
+            showNotification('请点击浏览器菜单 → 添加到主屏幕');
+        } else {
+            showNotification('请使用浏览器菜单添加到主屏幕');
+        }
     }
 }
+
+// 检测是否已安装
+window.addEventListener('appinstalled', () => {
+    showNotification('饿魔已安装到主屏幕！');
+    deferredPrompt = null;
+    const installBtn = document.getElementById('installBtn');
+    if (installBtn) installBtn.style.display = 'none';
+});
 
 // ===== 数据导入 =====
 function importFromCSV() {

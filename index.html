@@ -66,15 +66,15 @@
         <!-- 今日概览卡片 -->
         <div class="card summary-card">
             <h3>今日概览</h3>
-            <div class="ring-progress" id="caloriesRing">
-                <svg width="120" height="120" viewBox="0 0 120 120">
+            <div class="ring-progress" id="caloriesRing" style="width:60px;height:60px;margin:0 auto;">
+                <svg width="60" height="60" viewBox="0 0 120 120">
                     <circle class="ring-bg" cx="60" cy="60" r="52"/>
                     <circle class="ring-fill" id="caloriesRingFill" cx="60" cy="60" r="52" 
                         stroke-dasharray="327" stroke-dashoffset="327"/>
                 </svg>
                 <div class="ring-text">
-                    <div class="ring-value" id="todayCalories">0</div>
-                    <div class="ring-label">kcal</div>
+                    <div class="ring-value" id="todayCalories" style="font-size:16px;">0</div>
+                    <div class="ring-label" style="font-size:10px;">kcal</div>
                 </div>
             </div>
             <div class="summary-grid" style="margin-top:20px;">
@@ -715,7 +715,14 @@
                 <h3>📱 添加到桌面</h3>
                 <p class="hint">像App一样使用饿魔</p>
                 <button class="share-btn" id="installBtn" onclick="installPWA()" style="display:none;">📲 安装到桌面</button>
-                <p id="installHint" class="hint">iOS用户：点击分享→添加到主屏幕</p>
+                <div id="installInstructions" style="margin-top:10px;font-size:13px;color:var(--text-light);">
+                    <p><strong>iOS (Safari):</strong></p>
+                    <p>1. 点击分享按钮 ⎗</p>
+                    <p>2. 选择"添加到主屏幕"</p>
+                    <p style="margin-top:10px;"><strong>Android (Chrome):</strong></p>
+                    <p>1. 点击菜单 ⋮</p>
+                    <p>2. 选择"添加到主屏幕"</p>
+                </div>
             </div>
             
             <button class="share-btn" onclick="closeSettingsModal()" style="margin-top: 20px;">关闭</button>
