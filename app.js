@@ -218,10 +218,15 @@ function updateTodaySummary() {
     const totalProtein = todayRecords.reduce((sum, r) => sum + (r.protein || 0), 0);
     const totalFat = todayRecords.reduce((sum, r) => sum + (r.fat || 0), 0);
     
-    document.getElementById('todayCalories')?.textContent = Math.round(totalCalories);
-    document.getElementById('todayCarbs')?.textContent = Math.round(totalCarbs);
-    document.getElementById('todayProtein')?.textContent = Math.round(totalProtein);
-    document.getElementById('todayFat')?.textContent = Math.round(totalFat);
+    const caloriesEl = document.getElementById('todayCalories');
+    const carbsEl = document.getElementById('todayCarbs');
+    const proteinEl = document.getElementById('todayProtein');
+    const fatEl = document.getElementById('todayFat');
+    
+    if (caloriesEl) caloriesEl.textContent = Math.round(totalCalories);
+    if (carbsEl) carbsEl.textContent = Math.round(totalCarbs);
+    if (proteinEl) proteinEl.textContent = Math.round(totalProtein);
+    if (fatEl) fatEl.textContent = Math.round(totalFat);
     
     // 更新环形进度
     const ringFill = document.getElementById('caloriesRingFill');
@@ -285,8 +290,10 @@ function updateBodyList() {
 }
 
 function updateWaterStatus() {
-    document.getElementById('waterConsumed')?.textContent = appData.waterConsumed;
-    document.getElementById('waterTarget')?.textContent = appData.waterTarget;
+    const waterConsumedEl = document.getElementById('waterConsumed');
+    const waterTargetEl = document.getElementById('waterTarget');
+    if (waterConsumedEl) waterConsumedEl.textContent = appData.waterConsumed;
+    if (waterTargetEl) waterTargetEl.textContent = appData.waterTarget;
 }
 
 // ===== 功能操作 =====
