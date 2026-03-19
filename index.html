@@ -119,6 +119,46 @@
                     <span class="unit">g</span>
                 </div>
             </div>
+            <div id="dailyFeedback" class="feedback" style="display:none;margin-top:var(--space-3);"></div>
+        </div>
+
+        <!-- 碳循环计划 -->
+        <div class="card" id="carbonCard">
+            <h3>📅 碳循环计划</h3>
+            <div class="form-row">
+                <label>当前阶段</label>
+                <select id="carbonPhase" onchange="updateCarbonSettings()">
+                    <option value="cutting">减脂期</option>
+                    <option value="maintenance">维持期</option>
+                    <option value="bulking">增肌期</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>今日类型</label>
+                <select id="carbonDayType" onchange="updateCarbonDisplay()">
+                    <option value="high">高碳日</option>
+                    <option value="medium">中碳日</option>
+                    <option value="low">低碳日</option>
+                    <option value="none">无碳日</option>
+                </select>
+            </div>
+            <div class="carbon-targets" style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3);margin:var(--space-4) 0;">
+                <div class="data-card">
+                    <div class="label">碳水目标</div>
+                    <div class="value" id="carbonTargetCarbs">150<span class="unit">g</span></div>
+                </div>
+                <div class="data-card">
+                    <div class="label">蛋白质</div>
+                    <div class="value" id="carbonTargetProtein">120<span class="unit">g</span></div>
+                </div>
+                <div class="data-card">
+                    <div class="label">脂肪</div>
+                    <div class="value" id="carbonTargetFat">50<span class="unit">g</span></div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="carbonProgress" style="width:0%"></div>
+            </div>            <p style="text-align:center;margin-top:var(--space-2);color:var(--text-muted);font-size:12px;" id="carbonProgressText">碳水摄入 0/150g</p>
         </div>
 
         <!-- 饮食记录 -->
@@ -149,6 +189,17 @@
                 <button class="submit-btn" onclick="addDietRecord()">✅ 添加记录</button>
             </div>
             
+            <div id="photoInput" class="input-form hidden">
+                <div class="file-input-wrapper">
+                    <input type="file" id="foodPhoto" accept="image/*" onchange="handlePhotoUpload()">
+                    <div class="file-input-trigger">
+                        <div class="icon">📷</div>
+                        <div class="text">点击拍照或选择图片</div>
+                    </div>
+                </div>
+                <div id="photoPreview"></div>
+            </div>
+            
             <div id="dietList" class="record-list" style="margin-top:var(--space-5);"></div>
         </div>
 
@@ -163,8 +214,97 @@
                 <label>体脂率 (%)</label>
                 <input type="number" id="bodyFat" placeholder="20.0" step="0.1">
             </div>
+            <div class="form-row">
+                <label>腰围 (cm)</label>
+                <input type="number" id="bodyWaist" placeholder="80.0" step="0.1">
+            </div>
+            <div class="form-row">
+                <label>臀围 (cm)</label>
+                <input type="number" id="bodyHip" placeholder="95.0" step="0.1">
+            </div>
+            <div class="form-row">
+                <label>胸围 (cm)</label>
+                <input type="number" id="bodyChest" placeholder="95.0" step="0.1">
+            </div>
+            <div class="form-row">
+                <label>臂围 (cm)</label>
+                <input type="number" id="bodyArm" placeholder="30.0" step="0.1">
+            </div>
+            <div class="form-row">
+                <label>大腿围 (cm)</label>
+                <input type="number" id="bodyThigh" placeholder="55.0" step="0.1">
+            </div>
             <button class="submit-btn" onclick="addBodyRecord()">✅ 记录数据</button>
             <div id="bodyList" class="record-list" style="margin-top:var(--space-5);"></div>
+            <div id="bodyChart" style="margin-top:var(--space-5);height:200px;"></div>
+        </div>
+
+        <!-- 睡眠记录 -->
+        <div class="card">
+            <h3>😴 睡眠记录</h3>
+            <div class="form-row">
+                <label>昨晚入睡时间</label>
+                <input type="time" id="sleepStart">
+            </div>
+            <div class="form-row">
+                <label>今早起床时间</label>
+                <input type="time" id="sleepEnd">
+            </div>
+            <div class="form-row">
+                <label>睡眠质量</label>
+                <select id="sleepQuality">
+                    <option value="5">😴 非常好</option>
+                    <option value="4">🙂 好</option>
+                    <option value="3">😐 一般</option>
+                    <option value="2">😕 差</option>
+                    <option value="1">😫 非常差</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>备注</label>
+                <input type="text" id="sleepNote" placeholder="例如：做梦、夜醒等">
+            </div>
+            <button class="submit-btn" onclick="addSleepRecord()">✅ 记录睡眠</button>
+            <div id="sleepList" class="record-list" style="margin-top:var(--space-5);"></div>
+        </div>
+
+        <!-- 运动记录 -->
+        <div class="card">
+            <h3>💪 运动记录</h3>
+            <div class="form-row">
+                <label>运动类型</label>
+                <select id="exerciseType">
+                    <option value="cardio">有氧运动</option>
+                    <option value="strength">力量训练</option>
+                    <option value="hiit">HIIT</option>
+                    <option value="yoga">瑜伽</option>
+                    <option value="swim">游泳</option>
+                    <option value="run">跑步</option>
+                    <option value="other">其他</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>运动时长 (分钟)</label>
+                <input type="number" id="exerciseDuration" placeholder="30" min="1">
+            </div>
+            <div class="form-row">
+                <label>消耗热量 (kcal)</label>
+                <input type="number" id="exerciseCalories" placeholder="200">
+            </div>
+            <div class="form-row">
+                <label>运动强度</label>
+                <select id="exerciseIntensity">
+                    <option value="low">低强度</option>
+                    <option value="medium">中等强度</option>
+                    <option value="high">高强度</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>备注</label>
+                <input type="text" id="exerciseNote" placeholder="例如：练胸日、5公里跑等">
+            </div>
+            <button class="submit-btn" onclick="addExerciseRecord()">✅ 记录运动</button>
+            <div id="exerciseList" class="record-list" style="margin-top:var(--space-5);"></div>
         </div>
 
         <!-- 喝水记录 -->
@@ -175,10 +315,28 @@
                 <div style="font-size:32px;font-weight:700;color:var(--primary);">
                     <span id="waterConsumed">0</span> / <span id="waterTarget">2000</span> ml
                 </div>
+                <div class="progress-bar" style="margin:var(--space-4) auto;max-width:300px;">
+                    <div class="progress-fill" id="waterProgress" style="width:0%"></div>
+                </div>
                 <div style="margin-top:var(--space-4);display:flex;gap:var(--space-3);justify-content:center;">
                     <button class="btn btn-secondary" onclick="addWater(250)">+250ml</button>
                     <button class="btn btn-secondary" onclick="addWater(500)">+500ml</button>
+                    <button class="btn btn-secondary" onclick="resetWater()">🔄 重置</button>
                 </div>
+            </div>
+            <div id="waterList" class="record-list" style="margin-top:var(--space-5);"></div>
+        </div>
+
+        <!-- 数据图表 -->
+        <div class="card">
+            <h3>📈 数据趋势</h3>
+            <div class="tab-switcher">
+                <button class="tab-btn active" onclick="switchChart('weight')">体重</button>
+                <button class="tab-btn" onclick="switchChart('calories')">热量</button>
+                <button class="tab-btn" onclick="switchChart('water')">喝水</button>
+            </div>
+            <div id="chartContainer" style="height:250px;margin-top:var(--space-4);">
+                <canvas id="dataChart"></canvas>
             </div>
         </div>
 
