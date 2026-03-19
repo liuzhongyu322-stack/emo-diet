@@ -22,23 +22,41 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function init() {
+    console.log('初始化开始...');
     loadData();
     checkAuth();
+    console.log('初始化完成');
 }
 
 function bindEvents() {
-    // 登录/注册切换
-    document.getElementById('switchToReg')?.addEventListener('click', () => switchAuthMode('register'));
-    document.getElementById('switchToLogin')?.addEventListener('click', () => switchAuthMode('login'));
+    console.log('绑定事件...');
     
-    // 登录/注册/游客
-    document.getElementById('loginBtn')?.addEventListener('click', doLogin);
-    document.getElementById('registerBtn')?.addEventListener('click', doRegister);
-    document.getElementById('guestBtn')?.addEventListener('click', guestLogin);
+    // 登录/注册切换
+    const switchToReg = document.getElementById('switchToReg');
+    const switchToLogin = document.getElementById('switchToLogin');
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const guestBtn = document.getElementById('guestBtn');
+    
+    console.log('switchToReg:', switchToReg);
+    console.log('switchToLogin:', switchToLogin);
+    console.log('loginBtn:', loginBtn);
+    console.log('registerBtn:', registerBtn);
+    console.log('guestBtn:', guestBtn);
+    
+    if (switchToReg) switchToReg.addEventListener('click', () => switchAuthMode('register'));
+    if (switchToLogin) switchToLogin.addEventListener('click', () => switchAuthMode('login'));
+    if (loginBtn) loginBtn.addEventListener('click', doLogin);
+    if (registerBtn) registerBtn.addEventListener('click', doRegister);
+    if (guestBtn) guestBtn.addEventListener('click', guestLogin);
     
     // 回车提交
-    document.getElementById('loginEmail')?.addEventListener('keypress', (e) => e.key === 'Enter' && doLogin());
-    document.getElementById('loginPassword')?.addEventListener('keypress', (e) => e.key === 'Enter' && doLogin());
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPassword = document.getElementById('loginPassword');
+    if (loginEmail) loginEmail.addEventListener('keypress', (e) => e.key === 'Enter' && doLogin());
+    if (loginPassword) loginPassword.addEventListener('keypress', (e) => e.key === 'Enter' && doLogin());
+    
+    console.log('事件绑定完成');
 }
 
 // ===== 认证系统 =====
