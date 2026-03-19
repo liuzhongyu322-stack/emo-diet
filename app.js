@@ -101,6 +101,23 @@ function verifyAuthCode() {
     document.getElementById('authError').textContent = '授权码错误，请检查格式（主人码或EMO开头的分享码）';
 }
 
+// 游客模式登录
+function loginAsGuest() {
+    console.log('游客模式登录');
+    const guestAuthData = {
+        code: 'GUEST',
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 1天有效期
+        created: new Date().toISOString(),
+        isGuest: true
+    };
+    
+    localStorage.setItem(SHARE_AUTH_KEY, JSON.stringify(guestAuthData));
+    document.getElementById('authModal').classList.add('hidden');
+    document.getElementById('mainApp').classList.remove('hidden');
+    updateUI();
+    showNotification('欢迎游客！数据仅保存在本地');
+}
+
 // ===== 数据管理 =====
 function loadData() {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -1631,6 +1648,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 绑定授权弹窗按钮
     const verifyBtn = document.getElementById('verifyBtn');
     const clearBtn = document.getElementById('clearBtn');
+    const guestBtn = document.getElementById('guestBtn');
     
     if (verifyBtn) {
         verifyBtn.addEventListener('click', verifyAuthCode);
@@ -1638,6 +1656,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (clearBtn) {
         clearBtn.addEventListener('click', clearAuthAndReload);
+    }
+    
+    if (guestBtn) {
+        guestBtn.addEventListener('click', loginAsGuest);
+    }
+    
+    // 回车键提交
+    const authCodeInput = document.getElementById('authCode');
+    if (authCodeInput) {
+        authCodeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifyAuthCode();
+            }
+        });
     }
     
     init();

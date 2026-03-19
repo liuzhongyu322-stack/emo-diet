@@ -147,6 +147,8 @@ body {
   font-family: inherit;
   transition: all var(--transition-fast);
   background: var(--bg);
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
 }
 
 .modal-content input:focus {
