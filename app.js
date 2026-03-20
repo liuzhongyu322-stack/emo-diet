@@ -74,16 +74,16 @@ function checkAuth() {
 }
 
 function showAuthModal() {
-    const modal = document.getElementById('authModal');
+    const authPage = document.getElementById('authPage');
     const mainApp = document.getElementById('mainApp');
-    if (modal) modal.classList.remove('hidden');
+    if (authPage) authPage.classList.remove('hidden');
     if (mainApp) mainApp.classList.add('hidden');
 }
 
 function showMainApp() {
-    const modal = document.getElementById('authModal');
+    const authPage = document.getElementById('authPage');
     const mainApp = document.getElementById('mainApp');
-    if (modal) modal.classList.add('hidden');
+    if (authPage) authPage.classList.add('hidden');
     if (mainApp) mainApp.classList.remove('hidden');
 }
 
